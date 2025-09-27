@@ -1,75 +1,92 @@
-# React + TypeScript + Vite
+# Construction Plan Viewer
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A React-based interactive construction plan viewer that allows users to manage tasks and checklists on construction blueprints.
 
-Currently, two official plugins are available:
+## Features & Development Time
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+### Core Features
+- **User Authentication System** - *35 minutes*
 
-## React Compiler
+- **Interactive Canvas System** - *1 hour*
+  - Construction plan image loading and display
+  - Canvas coordinate transformation
+  - Click-to-place task markers
+  - Pin visualization with status colors
 
-The React Compiler is enabled on this template. See [this documentation](https://react.dev/learn/react-compiler) for more information.
+- **Task Management** - *1.5 hours*
+  - Create tasks at specific coordinates
+  - Edit task titles and status
+  - Status-based color coding (not started, in progress, blocked, final check, done)
+  - Task modal interface
 
-Note: This will impact Vite dev & build performances.
+- **Checklist System** - *1 hour*
+  - Add checklist items to tasks
+  - Status management for individual items
+  - Inline editing of checklist item text
+  - Delete checklist items
 
-## Expanding the ESLint configuration
+- **Database Integration** - *40 minutes*
+  - RxDB local database setup
+  - User data persistence
+  - Task and checklist item storage
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- **State Management Migration** - *30 minutes*
+  - Replaced session system with Zustand
+  - Centralized user and task state
+  - Optimistic UI updates
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+**Total Development Time: ~5 hours**
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+## Setup Instructions
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+### Prerequisites
+- Node.js 18+ 
+- npm or yarn
+
+### Start development server
+```bash
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+5. Open browser to `http://localhost:5173`
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+### Usage
+1. **Login**: Enter your name to access the application
+2. **View Plan**: The construction plan will load automatically
+3. **Add Tasks**: Click anywhere on the plan to create a new task
+4. **Edit Tasks**: Click on existing pin markers to edit tasks
+5. **Manage Checklists**: Add items to task checklists and track progress
+6. **Edit Items**: Click on checklist item text to edit inline
+7. **Track Status**: Use status dropdowns to update task and item progress
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## Technology Stack
+- **Frontend**: React 18 + TypeScript + Vite
+- **Styling**: Tailwind CSS v4
+- **Database**: RxDB (local storage)
+- **State Management**: Zustand
+- **Routing**: React Router DOM
+- **Canvas**: HTML5 Canvas API
+
+## Project Structure
 ```
+src/
+├── components/
+│   ├── ConstructionCanvas.tsx    # Main canvas component
+│   └── TaskModal.tsx            # Task editing modal
+├── pages/
+│   ├── Login.tsx               # Authentication page
+│   └── Home.tsx                # Main application page
+├── store/
+│   └── userStore.ts            # Zustand state management
+├── db/
+│   ├── index.ts                # Database functions
+│   └── schemas.ts              # Data schemas
+└── App.tsx                     # Main app component
+```
+
+## Key Features
+- **Offline-first**: Works without internet connection
+- **Real-time updates**: Changes reflect immediately
+- **Responsive design**: Works on desktop and mobile
+- **Type-safe**: Full TypeScript implementation
+- **Persistent data**: Local database storage
