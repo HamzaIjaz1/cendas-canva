@@ -90,3 +90,15 @@ src/
 - **Responsive design**: Works on desktop and mobile
 - **Type-safe**: Full TypeScript implementation
 - **Persistent data**: Local database storage
+
+
+## Possible Improvements
+- Save user session in RxDB and retain it on page reload.
+- Use styled components to make the components appear cleaner.
+- Add styling basics like setting up theme for overall app.
+- Making the canva code a bit more refined and minimal.
+- Look more into db schema optimisation according to use case.
+- Use better task check list icons and pin icons.
+- Testing with 1000+ task icons.
+- Look more into zustand slices like feature.
+- Add and think of logic to manage server and local db state and how to manage conflicts.

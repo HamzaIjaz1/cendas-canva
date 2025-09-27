@@ -62,6 +62,7 @@ export async function findOrCreateUser(name: string) {
 }
 
 export function getCurrentUserId() {
+  //Could be moved into zustand
   return useUserStore.getState().getCurrentUserId();
 }
 
