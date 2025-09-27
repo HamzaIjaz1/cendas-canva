@@ -8,6 +8,7 @@ import {
   addChecklistItem,
   deleteChecklistItem,
 } from "../db";
+import { useUserStore } from "../store/userStore";
 
 interface TaskModalProps {
   isOpen: boolean;
@@ -72,6 +73,8 @@ export default function TaskModal({
   const [isLoading, setIsLoading] = useState(false);
   const [pendingItems, setPendingItems] = useState<string[]>([]);
 
+  const { addTask, updateTask: updateTaskInStore } = useUserStore();
+
   useEffect(() => {
     if (isOpen && task) {
       setTitle(task.title);
@@ -101,9 +104,12 @@ export default function TaskModal({
       setIsLoading(true);
       if (task) {
         await updateTask(task.id, { title, status });
+        updateTaskInStore(task.id, { title, status });
       } else {
         const newTask = await createTask(x, y, title);
         const taskId = newTask.get("id") as string;
+        const taskData = newTask.toJSON() as TaskDocType;
+        addTask(taskData);
 
         for (let i = 0; i < pendingItems.length; i++) {
           await addChecklistItem(taskId, pendingItems[i]);
@@ -121,7 +127,9 @@ export default function TaskModal({
     try {
       await updateChecklistItemStatus(itemId, newStatus);
       setItems((prev) =>
-        prev.map((item) => (item.id === itemId ? { ...item, status: newStatus } : item))
+        prev.map((item) =>
+          item.id === itemId ? { ...item, status: newStatus } : item
+        )
       );
     } catch (error) {
       console.error("Failed to update:", error);
@@ -175,12 +183,19 @@ export default function TaskModal({
           </div>
           {task && (
             <div className="flex items-center gap-2 mt-3">
-              <div className={`w-3 h-3 rounded-full ${
-                task.status === 'blocked' ? 'bg-red-500' :
-                task.status === 'done' ? 'bg-green-500' :
-                task.status === 'in_progress' ? 'bg-orange-500' :
-                task.status === 'final_check' ? 'bg-blue-500' : 'bg-gray-400'
-              }`}></div>
+              <div
+                className={`w-3 h-3 rounded-full ${
+                  task.status === "blocked"
+                    ? "bg-red-500"
+                    : task.status === "done"
+                    ? "bg-green-500"
+                    : task.status === "in_progress"
+                    ? "bg-orange-500"
+                    : task.status === "final_check"
+                    ? "bg-blue-500"
+                    : "bg-gray-400"
+                }`}
+              ></div>
               <span className={statusConfig[task.status].color}>
                 {task.status === "blocked"
                   ? "Ticket progress is blocked"
@@ -256,19 +271,6 @@ export default function TaskModal({
                   <span className="text-sm text-gray-400 font-medium">
                     {items.length + pendingItems.length} STEPS
                   </span>
-                  <button
-                    className="text-gray-400 hover:text-gray-600"
-                    title="Expand checklist"
-                  >
-                    <svg
-                      width="16"
-                      height="16"
-                      viewBox="0 0 16 16"
-                      fill="currentColor"
-                    >
-                      <path d="M8 4l4 4-4 4V4z" />
-                    </svg>
-                  </button>
                 </div>
               </div>
 
@@ -282,7 +284,10 @@ export default function TaskModal({
                       <select
                         value={item.status}
                         onChange={(e) =>
-                          changeStatus(item.id, e.target.value as ChecklistStatus)
+                          changeStatus(
+                            item.id,
+                            e.target.value as ChecklistStatus
+                          )
                         }
                         className="w-8 h-8 rounded-lg border-0 cursor-pointer appearance-none opacity-0 absolute inset-0 z-10"
                         title={`Change status from ${
@@ -297,12 +302,19 @@ export default function TaskModal({
                           )
                         )}
                       </select>
-                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center pointer-events-none text-white font-bold ${
-                        item.status === 'blocked' ? 'bg-red-500' :
-                        item.status === 'done' ? 'bg-green-500' :
-                        item.status === 'in_progress' ? 'bg-orange-500' :
-                        item.status === 'final_check' ? 'bg-blue-500' : 'bg-gray-400'
-                      }`}>
+                      <div
+                        className={`w-8 h-8 rounded-lg flex items-center justify-center pointer-events-none text-white font-bold ${
+                          item.status === "blocked"
+                            ? "bg-red-500"
+                            : item.status === "done"
+                            ? "bg-green-500"
+                            : item.status === "in_progress"
+                            ? "bg-orange-500"
+                            : item.status === "final_check"
+                            ? "bg-blue-500"
+                            : "bg-gray-400"
+                        }`}
+                      >
                         {statusConfig[item.status].icon}
                       </div>
                     </div>
@@ -316,12 +328,19 @@ export default function TaskModal({
                           statusConfig[item.status].color
                         }`}
                       >
-                        <div className={`w-2 h-2 rounded-full ${
-                          item.status === 'blocked' ? 'bg-red-500' :
-                          item.status === 'done' ? 'bg-green-500' :
-                          item.status === 'in_progress' ? 'bg-orange-500' :
-                          item.status === 'final_check' ? 'bg-blue-500' : 'bg-gray-400'
-                        }`}></div>
+                        <div
+                          className={`w-2 h-2 rounded-full ${
+                            item.status === "blocked"
+                              ? "bg-red-500"
+                              : item.status === "done"
+                              ? "bg-green-500"
+                              : item.status === "in_progress"
+                              ? "bg-orange-500"
+                              : item.status === "final_check"
+                              ? "bg-blue-500"
+                              : "bg-gray-400"
+                          }`}
+                        ></div>
                         {statusConfig[item.status].label}
                       </div>
                     </div>
@@ -331,14 +350,7 @@ export default function TaskModal({
                       className="text-gray-400 hover:text-red-500 text-sm p-1 rounded"
                       title="Delete item"
                     >
-                      <svg
-                        width="16"
-                        height="16"
-                        viewBox="0 0 16 16"
-                        fill="currentColor"
-                      >
-                        <path d="M6.5 1h3a.5.5 0 0 1 .5.5v1H6v-1a.5.5 0 0 1 .5-.5ZM11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3A1.5 1.5 0 0 0 5 1.5v1H2.506a.58.58 0 0 0-.01 1.152l.557 10.056A2 2 0 0 0 5.046 16h5.908a2 2 0 0 0 1.993-1.792l.557-10.056a.58.58 0 0 0-.01-1.152H11Z" />
-                      </svg>
+                      X
                     </button>
                   </div>
                 ))}
@@ -370,35 +382,12 @@ export default function TaskModal({
                         className="text-gray-400 hover:text-red-500 text-sm p-1 rounded"
                         title="Delete item"
                       >
-                        <svg
-                          width="16"
-                          height="16"
-                          viewBox="0 0 16 16"
-                          fill="currentColor"
-                        >
-                          <path d="M6.5 1h3a.5.5 0 0 1 .5.5v1H6v-1a.5.5 0 0 1 .5-.5ZM11 2.5v-1A1.5 1.5 0 0 0 9.5 0h-3A1.5 1.5 0 0 0 5 1.5v1H2.506a.58.58 0 0 0-.01 1.152l.557 10.056A2 2 0 0 0 5.046 16h5.908a2 2 0 0 0 1.993-1.792l.557-10.056a.58.58 0 0 0-.01-1.152H11Z" />
-                        </svg>
+                        X
                       </button>
                     </div>
                   ))}
 
-                <div
-                  className="flex items-center gap-3 p-4 hover:bg-gray-50 rounded-lg transition-colors cursor-pointer"
-                  onClick={() => document.getElementById("new-item-input")?.focus()}
-                >
-                  <div className="flex-shrink-0">
-                    <div className="w-8 h-8 rounded-lg bg-blue-500 flex items-center justify-center">
-                      <svg
-                        width="16"
-                        height="16"
-                        viewBox="0 0 16 16"
-                        fill="white"
-                      >
-                        <path d="M8 2a.5.5 0 0 1 .5.5v5h5a.5.5 0 0 1 0 1h-5v5a.5.5 0 0 1-1 0v-5h-5a.5.5 0 0 1 0-1h5v-5A.5.5 0 0 1 8 2Z" />
-                      </svg>
-                    </div>
-                  </div>
-
+                <div className="flex items-center gap-3 p-4 hover:bg-gray-50 rounded-lg transition-colors cursor-pointer">
                   <div className="flex-1">
                     <input
                       id="new-item-input"
@@ -407,8 +396,20 @@ export default function TaskModal({
                       onChange={(e) => setNewItem(e.target.value)}
                       placeholder="ADD NEW ITEM"
                       className="w-full bg-transparent border-none outline-none text-blue-500 font-medium placeholder-blue-400 focus:ring-0"
-                      onKeyPress={(e) => e.key === "Enter" && addItem()}
+                      onKeyDown={(e) => e.key === "Enter" && addItem()}
                     />
+                  </div>
+                  <div className="flex-shrink-0">
+                    <div className="rounded-lg bg-blue-500">
+                      <button
+                        onClick={addItem}
+                        type="button"
+                        disabled={!newItem}
+                        className="text-white p-2"
+                      >
+                        +
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>

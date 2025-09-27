@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
+import { useUserStore } from '../store/userStore'
 import type { TaskDocType } from '../db/schemas'
-import { getTasksForUser } from '../db'
 import TaskModal from './TaskModal'
 
 interface ConstructionCanvasProps {
@@ -11,12 +11,13 @@ export default function ConstructionCanvas({ className = '' }: ConstructionCanva
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [imageLoaded, setImageLoaded] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [tasks, setTasks] = useState<TaskDocType[]>([])
+  const imageRef = useRef<HTMLImageElement | null>(null)
+  const pinIconRef = useRef<HTMLImageElement | null>(null)
   const [modalOpen, setModalOpen] = useState(false)
   const [clickCoords, setClickCoords] = useState({ x: 0, y: 0 })
   const [selectedTask, setSelectedTask] = useState<TaskDocType | null>(null)
-  const imageRef = useRef<HTMLImageElement | null>(null)
-  const pinIconRef = useRef<HTMLImageElement | null>(null)
+  
+  const { tasks, fetchTasks, isLoadingTasks } = useUserStore()
 
   useEffect(() => {
     const canvas = canvasRef.current
@@ -66,8 +67,8 @@ export default function ConstructionCanvas({ className = '' }: ConstructionCanva
   }, [])
 
   useEffect(() => {
-    loadTasks()
-  }, [modalOpen])
+    fetchTasks()
+  }, [modalOpen, fetchTasks])
 
   useEffect(() => {
     if (imageLoaded) {
@@ -75,14 +76,6 @@ export default function ConstructionCanvas({ className = '' }: ConstructionCanva
     }
   }, [tasks, imageLoaded])
 
-  const loadTasks = async () => {
-    try {
-      const userTasks = await getTasksForUser()
-      setTasks(userTasks.map(task => task.toJSON() as TaskDocType))
-    } catch (error) {
-      console.error('Failed to load tasks:', error)
-    }
-  }
 
   const redrawCanvas = () => {
     const canvas = canvasRef.current
@@ -197,20 +190,6 @@ export default function ConstructionCanvas({ className = '' }: ConstructionCanva
     setClickCoords({ x: Math.round(x), y: Math.round(y) })
     setModalOpen(true)
   }
-
-  if (error) {
-    return (
-      <div className={`flex items-center justify-center bg-gray-100 dark:bg-gray-800 rounded-lg p-8 ${className}`}>
-        <div className="text-center">
-          <p className="text-red-600 dark:text-red-400 mb-2">{error}</p>
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            Please save the construction plan image as 'construction-plan.png' in the public folder
-          </p>
-        </div>
-      </div>
-    )
-  }
-
   return (
     <div className={`relative bg-white dark:bg-gray-800 rounded-lg shadow-sm overflow-hidden ${className}`}>
       {!imageLoaded && (
