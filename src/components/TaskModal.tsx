@@ -6,6 +6,7 @@ import {
   updateTask,
   updateChecklistItemStatus,
   addChecklistItem,
+  updateChecklistItem,
   deleteChecklistItem,
 } from "../db";
 import { useUserStore } from "../store/userStore";
@@ -72,6 +73,8 @@ export default function TaskModal({
   const [newItem, setNewItem] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [pendingItems, setPendingItems] = useState<string[]>([]);
+  const [editingItemId, setEditingItemId] = useState<string | null>(null);
+  const [editingText, setEditingText] = useState("");
 
   const { addTask, updateTask: updateTaskInStore } = useUserStore();
 
@@ -164,6 +167,37 @@ export default function TaskModal({
 
   const removePending = (index: number) => {
     setPendingItems((prev) => prev.filter((_, i) => i !== index));
+  };
+
+  const startEditing = (item: ChecklistItemDocType) => {
+    setEditingItemId(item.id);
+    setEditingText(item.title);
+  };
+
+  const saveEdit = async () => {
+    if (!editingItemId || !editingText.trim()) {
+      setEditingItemId(null);
+      return;
+    }
+
+    try {
+      await updateChecklistItem(editingItemId, editingText.trim());
+      setItems((prev) =>
+        prev.map((item) =>
+          item.id === editingItemId ? { ...item, title: editingText.trim() } : item
+        )
+      );
+    } catch (error) {
+      console.error("Failed to update item:", error);
+    } finally {
+      setEditingItemId(null);
+      setEditingText("");
+    }
+  };
+
+  const cancelEdit = () => {
+    setEditingItemId(null);
+    setEditingText("");
   };
 
   if (!isOpen) return null;
@@ -320,9 +354,27 @@ export default function TaskModal({
                     </div>
 
                     <div className="flex-1 min-w-0">
-                      <div className="font-medium text-gray-900 mb-1">
-                        {item.title}
-                      </div>
+                      {editingItemId === item.id ? (
+                        <input
+                          type="text"
+                          value={editingText}
+                          onChange={(e) => setEditingText(e.target.value)}
+                          onBlur={saveEdit}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") saveEdit();
+                            if (e.key === "Escape") cancelEdit();
+                          }}
+                          className="w-full font-medium text-gray-900 bg-transparent border-b border-blue-500 outline-none focus:border-blue-600"
+                          autoFocus
+                        />
+                      ) : (
+                        <div
+                          className="font-medium text-gray-900 mb-1 cursor-pointer hover:bg-gray-50 p-1 rounded"
+                          onClick={() => startEditing(item)}
+                        >
+                          {item.title}
+                        </div>
+                      )}
                       <div
                         className={`inline-flex items-center gap-1 text-xs font-medium ${
                           statusConfig[item.status].color

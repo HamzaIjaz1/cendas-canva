@@ -185,6 +185,21 @@ export async function addChecklistItem(taskId: string, title: string) {
   });
 }
 
+export async function updateChecklistItem(itemId: string, title: string) {
+  const userId = getCurrentUserId();
+  if (!userId) throw new Error('No user logged in');
+  
+  const db = await getDB();
+  const item = await db.checklistItems.findOne({ selector: { id: itemId, userId } }).exec();
+  if (!item) throw new Error('Checklist item not found');
+  
+  await item.incrementalModify((data) => ({
+    ...data,
+    title,
+    updatedAt: Date.now(),
+  }));
+}
+
 export async function deleteChecklistItem(itemId: string) {
   const userId = getCurrentUserId();
   if (!userId) throw new Error('No user logged in');
